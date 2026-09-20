@@ -5,7 +5,7 @@ import { access, cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "n
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { DefaultResourceLoader, SettingsManager, SessionManager, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { DefaultResourceLoader, SettingsManager, SessionManager, type AgentToolResult, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const exec = promisify(execFile);
 const project = fileURLToPath(new URL("../", import.meta.url));
@@ -84,7 +84,7 @@ try {
       // manifest: an unrooted review must not silently switch to the ring.
       await assert.rejects(extension.tools.get("contour_review")!.definition.execute("enrolled-default", { target: "staged" }, undefined, undefined, context), /Git worktree/);
       const result = await extension.tools.get("contour_review")!.definition.execute("package-probe", { root: repository, target: "staged" }, undefined, undefined, context);
-      assert.ok(result.content.some(content => content.type === "text" && content.text.includes("complexity")));
+      assert.ok(result.content.some((content: AgentToolResult["content"][number]) => content.type === "text" && content.text.includes("complexity")));
       assert.equal((result.details as { root: string }).root, await realpath(repository));
     } finally {
       for (const handler of extension.handlers.get("session_shutdown") ?? []) await handler({ type: "session_shutdown" }, context);

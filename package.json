@@ -60,7 +60,7 @@
     "contour": "tsx src/cli.ts"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "0.85.1",
+    "@earendil-works/pi-coding-agent": "0.86.0",
     "@types/node": "^22.0.0",
     "esbuild": "^0.28.1",
     "knip": "^6.32.0",
