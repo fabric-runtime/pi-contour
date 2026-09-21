@@ -14,7 +14,7 @@ ${v}
 `+a.slice(s.length);try{await A(i,l,{flag:"wx",mode:493})}catch(c){throw c.code==="EEXIST"?new Error(`Hook already exists at ${i}; integrate Contour manually or explicitly uninstall its managed hook first`):c}return`Installed ${i}${e?" (explicit policy enforcement; analysis failures block)":" (advisory)"}`}async function O(t){let r=await S(t);if(!(await B(r)).isFile())throw new Error("Refusing to remove a hook not managed by Contour");let e=await U(r,"utf8"),i=`#!/bin/sh
 ${v}
 `,a=e.slice(i.length),s=a.indexOf(`
-`);if(!e.startsWith(i)||a.slice(0,s)!==`# sha256:${w(i+a.slice(s+1))}`)throw new Error("Refusing to remove a modified or unmanaged Contour hook");return await H(r),`Removed ${r}`}async function L(){return"0.4.2"}var M=`contour review [--staged|--working-tree] [--json] [--root DIR]
+`);if(!e.startsWith(i)||a.slice(0,s)!==`# sha256:${w(i+a.slice(s+1))}`)throw new Error("Refusing to remove a modified or unmanaged Contour hook");return await H(r),`Removed ${r}`}async function L(){return"0.4.4"}var M=`contour review [--staged|--working-tree] [--json] [--root DIR]
                [--max-tokens N] [--max-findings N] [--policy FILE] [--checkpoint]
 contour hook install [--root DIR] [--policy FILE]
 contour hook uninstall [--root DIR]
