@@ -16,7 +16,7 @@ const result = await build({
   bundle: true, splitting: true, format: "esm", platform: "node", target: "node20", sourcemap: false, minify: true,
   preserveSymlinks: true, metafile: true,
   define: { __CONTOUR_VERSION__: JSON.stringify(manifest.version) },
-  external: ["typebox", "@earendil-works/pi-coding-agent"],
+  external: ["typebox", "@earendil-works/pi-ai", "@earendil-works/pi-agent-core", "@earendil-works/pi-coding-agent", "@earendil-works/pi-tui"],
   banner: { js: 'import { createRequire as __contourCreateRequire } from "node:module"; import { fileURLToPath as __contourFileURLToPath } from "node:url"; import { dirname as __contourDirname } from "node:path"; const require = __contourCreateRequire(import.meta.url); const __filename = __contourFileURLToPath(import.meta.url); const __dirname = __contourDirname(__filename);' },
   logLevel: "warning",
 });

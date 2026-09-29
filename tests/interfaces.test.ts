@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ExtensionAPI, ExtensionContext, ToolDefinition } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionToolContext, ToolDefinition } from "@earendil-works/pi-coding-agent";
 import { readFile, symlink } from "node:fs/promises";
 import { join } from "node:path";
 import contour from "../src/index.js";
@@ -29,8 +29,10 @@ describe("public interfaces", () => {
     const api = { on: vi.fn(), registerTool: vi.fn(), registerCommand: vi.fn(), sendMessage: vi.fn() };
     contour(api as unknown as ExtensionAPI);
     const tool = api.registerTool.mock.calls[0]![0] as ToolDefinition;
-    const ctx = { cwd: root, hasUI: false } as ExtensionContext;
+    const executeTool = vi.fn(async () => { throw new Error("Unexpected nested tool"); });
+    const ctx = { cwd: root, hasUI: false, tools: [], executeTool } as unknown as ExtensionToolContext;
     const result = await tool.execute("call", { target: "staged", maxTokens: 512 }, undefined, undefined, ctx);
+    expect(executeTool).not.toHaveBeenCalled();
     expect(result.content[0]).toMatchObject({ type: "text", text: expect.stringContaining("Δ [complexity; advisory]") });
     const text = (result.content[0] as { text: string }).text;
     for (const marker of ["  ▪ a.ts:", "  ↗ Exposure (modeled):", "  ? "]) expect(text).toContain(marker);

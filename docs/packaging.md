@@ -14,7 +14,9 @@ Both extension sources use `pi.extensions = ["./dist/index.mjs"]`. The CLI uses 
 
 The extension and CLI bundles include the consumed substrate and TypeScript parser. They do not activate Fovea's extension, its observers, session state, CLI, or optional external parser. Installing Contour alone needs no Fovea registration, TypeScript install, or tsx runtime. Fovea and Contour can coexist: they share an algorithmic substrate and session-qualified target hints, not mutable analysis state. Their caches have different namespaces.
 
-Tool parameters are plain, typed JSON Schema: startup does not import a schema builder. The optional `typebox` peer remains compatible with Pi without pulling the host into a CLI-only installation. The Pi API import is type-only, and the SDK is dev-only rather than a peer. Production root installers can materialize even an optional SDK peer; the package probe guards against that unwanted host installation. Bundled third-party license notices ship in `dist/THIRD_PARTY_LICENSES.txt`.
+Tool parameters are plain, typed JSON Schema: startup does not import a schema builder. Pi APIs and `typebox` are wildcard peers, with Pi 0.99.0 and TypeBox 1.3.27 pinned for development. The Pi API import is type-only. Pi-managed installs suppress host peers (`npm --legacy-peer-deps`, `bun --omit=peer`); use those flags for a host-free standalone CLI installation too. The package probe checks the actual Pi 0.99 install contract and rejects physical host packages.
+
+The registry-pinned `pi-fovea@0.27.0` development dependency is intentionally retained: its substrate and version-1 workspace protocol are compatible with the newer Fovea checkout. Updating it is a separate substrate release, not required for the Pi host migration. Cross-package probes exercise both extensions together; no sibling path or unpublished Fovea version is shipped. Bundled third-party license notices ship in `dist/THIRD_PARTY_LICENSES.txt`.
 
 ## Startup contract
 

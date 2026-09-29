@@ -5,7 +5,7 @@ import { access, cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "n
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { DefaultResourceLoader, SettingsManager, SessionManager, type AgentToolResult, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { DefaultResourceLoader, SettingsManager, SessionManager, type AgentToolResult, type ExtensionContext, type ExtensionToolContext } from "@earendil-works/pi-coding-agent";
 
 const exec = promisify(execFile);
 const project = fileURLToPath(new URL("../", import.meta.url));
@@ -14,7 +14,8 @@ const run = (file: string, args: string[], cwd: string) => exec(file, args, { cw
 const manifest = JSON.parse(await readFile(join(project, "package.json"), "utf8"));
 assert.match(manifest.devDependencies["pi-fovea"], /^\d+\.\d+\.\d+$/);
 assert.equal(manifest.dependencies, undefined);
-assert.equal(manifest.peerDependencies?.["@earendil-works/pi-coding-agent"], undefined);
+assert.equal(manifest.peerDependencies?.["@earendil-works/pi-coding-agent"], "*");
+assert.equal(manifest.peerDependencies?.typebox, "*");
 assert.deepEqual(manifest.pi.extensions, ["./dist/index.mjs"]);
 assert.equal(manifest.bin.contour, "dist/cli.mjs");
 assert.equal(manifest.scripts.prepare, undefined); assert.equal(manifest.scripts.postinstall, undefined);
@@ -36,7 +37,7 @@ try {
     let installed: string;
     if (mode === "npm") {
       await writeFile(join(directory, "package.json"), JSON.stringify({ private: true }));
-      await run("npm", ["install", archive, "--omit=dev", "--omit=optional", "--ignore-scripts", "--no-audit", "--no-fund"], directory);
+      await run("npm", ["install", archive, "--omit=dev", "--legacy-peer-deps", "--omit=optional", "--ignore-scripts", "--no-audit", "--no-fund"], directory);
       installed = join(directory, "node_modules/pi-contour");
     } else {
       // The complete production-relevant Git layout, outside the sibling checkout.
@@ -44,8 +45,8 @@ try {
         await cp(join(project, name), join(directory, name), { recursive: true });
       }
       // Pi uses a production npm install for Git sources; also verify Bun's frozen lock.
-      await run("npm", ["install", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"], directory);
-      await run("bun", ["install", "--production", "--ignore-scripts", "--frozen-lockfile"], directory);
+      await run("npm", ["install", "--omit=dev", "--legacy-peer-deps", "--ignore-scripts", "--no-audit", "--no-fund"], directory);
+      await run("bun", ["install", "--omit=dev", "--omit=peer", "--ignore-scripts", "--frozen-lockfile"], directory);
       installed = directory;
     }
     for (const name of ["pi-fovea", "typescript", "tsx", "@earendil-works/pi-coding-agent"]) {
@@ -68,7 +69,10 @@ try {
     const session = SessionManager.inMemory(directory);
     loaded.runtime.appendEntry = (customType, data) => { session.appendCustomEntry(customType, data); };
     loaded.runtime.sendMessage = () => { throw new Error("Discovery must not send messages"); };
-    const context = { cwd: directory, hasUI: false, sessionManager: session as ExtensionContext["sessionManager"] } as ExtensionContext;
+    const context = {
+      cwd: directory, hasUI: false, sessionManager: session as ExtensionContext["sessionManager"],
+      tools: [], executeTool: async () => { throw new Error("Contour must not execute nested tools"); },
+    } as unknown as ExtensionToolContext;
     const start = performance.now();
     for (const handler of extension.handlers.get("session_start") ?? []) await handler({ type: "session_start" }, context);
     const sessionStartMs = performance.now() - start;
