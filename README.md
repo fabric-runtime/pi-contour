@@ -20,7 +20,7 @@ A patch can make individual functions shorter while moving decisions into helper
 
 ## Install
 
-**0.4.5 compatibility:** tested against Pi 0.99.0, including native nested-tool execution and codemode/Fabric declaration hiding. Pi APIs and TypeBox are wildcard peers supplied by the host; use Node 22.19+ with Pi. The standalone CLI still supports Node 20+.
+**0.4.6 compatibility:** tested against Pi 1.0.0, including native nested-tool execution and codemode/Fabric declaration hiding. Pi APIs and TypeBox are wildcard peers supplied by the host; use Node 22.19+ with Pi. The standalone CLI still supports Node 20+.
 
 For your Pi setup, choose **one** source:
 

@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { VERSION, createAgentSession, createCodemodeExtension, DefaultResourceLoader, SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { complex, repo } from "./helpers.js";
 
-it("Pi 0.99 loads Contour and executes read-only nested review behind codemode-only", async () => {
-  expect(VERSION).toBe("0.99.0");
+it.each(["../src/index.ts", "../dist/index.mjs"])("Pi 1.0 loads Contour %s and executes nested review behind codemode-only", async (entrypoint) => {
+  expect(VERSION).toBe("1.0.0");
   const root = await repo({ "entry.ts": complex("migrationProbe") }, false);
   const previous = process.env.CONTOUR_BACKGROUND;
   process.env.CONTOUR_BACKGROUND = "0";
@@ -18,7 +18,7 @@ it("Pi 0.99 loads Contour and executes read-only nested review behind codemode-o
     stopReason: "toolUse", timestamp: 0 });
   const settingsManager = SettingsManager.inMemory({ defaultTools: ["+codemode"] });
   const loader = new DefaultResourceLoader({ cwd: root, agentDir: join(root, "agent"), settingsManager,
-    additionalExtensionPaths: [new URL("../src/index.ts", import.meta.url).pathname],
+    additionalExtensionPaths: [new URL(entrypoint, import.meta.url).pathname],
     extensionFactories: [createCodemodeExtension({ mode: "only" })],
     noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true });
   let session: Awaited<ReturnType<typeof createAgentSession>>["session"] | undefined;
@@ -36,6 +36,11 @@ it("Pi 0.99 loads Contour and executes read-only nested review behind codemode-o
     expect(outcome.isError, JSON.stringify(outcome.result)).toBe(false);
     expect(outcome.result.details).toMatchObject({ target: "staged", after: { decisions: 12 } });
     expect(session.sessionManager.getBranch().some(entry => entry.type === "custom" && entry.customType === "pi-contour-workspace")).toBe(true);
+    session.setActiveToolsByName(session.getActiveToolNames().filter(name => name !== "codemode"));
+    const direct = await session.agent.transformContext!([{ role: "system", content: "probe", toolsAdded: session.agent.state.tools.map(({ name, description, parameters }) => ({ name, description, parameters })), timestamp: 0 }]);
+    expect(direct.flatMap(message => message.role === "system" ? message.toolsAdded?.map(tool => tool.name) ?? [] : [])).toContain("contour_review");
+    await session.extensionRunner.emit({ type: "session_shutdown", reason: "quit" });
+    // The finally block repeats shutdown after actual analysis.
     expect(errors).not.toHaveBeenCalled();
   } finally {
     if (session) { await session.extensionRunner.emit({ type: "session_shutdown", reason: "quit" }); session.dispose(); }
