@@ -4,7 +4,7 @@
 
 ## One substrate, two interpretations
 
-[Fovea](https://github.com/monotykamary/pi-fovea) owns graph assembly and the numerical solver. Contour consumes the versioned `pi-fovea/substrate` API with immutable syntax facts. It neither parses rendered navigation output nor substitutes a live session graph for the staged snapshot.
+[Fovea](https://github.com/fabric-runtime/pi-fovea) owns graph assembly and the numerical solver. Contour consumes the versioned `pi-fovea/substrate` API with immutable syntax facts. It neither parses rendered navigation output nor substitutes a live session graph for the staged snapshot.
 
 Symbols and files are nodes. Typed witnesses explain each relationship. Contour uses an undirected conductance projection for exposure; imports remain directed for cycles and explicit boundary policies. An undirected heat field is not a causal dependency proof.
 

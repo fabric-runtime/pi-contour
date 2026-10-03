@@ -6,7 +6,7 @@
 <p align="center"><strong>See the shape of a change.</strong><br/>Evidence-first structural review for the <a href="https://github.com/earendil-works/pi">pi coding agent</a>.</p>
 <p align="center">
   <a href="https://www.npmjs.com/package/pi-contour"><img src="https://img.shields.io/npm/v/pi-contour?color=66d9b7&amp;style=flat-square" alt="npm version" /></a>
-  <a href="https://github.com/monotykamary/pi-contour/actions/workflows/test.yml"><img src="https://github.com/monotykamary/pi-contour/actions/workflows/test.yml/badge.svg" alt="Checks" /></a>
+  <a href="https://github.com/fabric-runtime/pi-contour/actions/workflows/test.yml"><img src="https://github.com/fabric-runtime/pi-contour/actions/workflows/test.yml/badge.svg" alt="Checks" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7eafc4?style=flat-square" alt="MIT license" /></a>
   <img src="https://img.shields.io/badge/Node-%E2%89%A520-7eafc4?style=flat-square" alt="Node 20 or newer" />
 </p>
@@ -28,7 +28,7 @@ For your Pi setup, choose **one** source:
 pi install npm:pi-contour
 
 # Or install directly from GitHub:
-pi install git:github.com/monotykamary/pi-contour
+pi install git:github.com/fabric-runtime/pi-contour
 ```
 
 Restart Pi, or `/reload` in a running session after installation. Requires Pi, Node 20+, and Git. **You do not need to install Fovea separately.** The compiler and versioned `pi-fovea/substrate` are bundled; Pi supplies `typebox`. Git and npm both ship the ready-to-load distribution—no sibling checkout, tsx, compilation, or postinstall script.
@@ -178,7 +178,7 @@ Inspired by [Earendil's article](https://earendil.com/posts/measuring-code-slopp
 
 ## Same heat. Different question.
 
-[Fovea](https://github.com/monotykamary/pi-fovea) owns graph assembly and the numerical solver. Contour feeds the shared **`pi-fovea/substrate` API** immutable syntax facts, not rendered navigation output or mutable session state.
+[Fovea](https://github.com/fabric-runtime/pi-fovea) owns graph assembly and the numerical solver. Contour feeds the shared **`pi-fovea/substrate` API** immutable syntax facts, not rendered navigation output or mutable session state.
 
 Each selected finding seeds one unit of mass. Contour's conservative undirected conductance projection transports it through the forward, mass-conserving heat field:
 
@@ -189,7 +189,7 @@ $$
 
 At $t\in\{0.5,2,8\}$, the contours show local through wider exposure. Isolates keep their mass. Directory boundaries are proxies; legitimate integration can have high exposure. This is **not defect probability, causal proof, or calibrated maintenance cost**.
 
-[The full physics contract →](docs/physics.md) · [Fovea's substrate API →](https://github.com/monotykamary/pi-fovea/blob/main/docs/substrate.md)
+[The full physics contract →](docs/physics.md) · [Fovea's substrate API →](https://github.com/fabric-runtime/pi-fovea/blob/main/docs/substrate.md)
 
 ## Optional commit checkpoint
 
@@ -229,7 +229,7 @@ Exit codes: **0** advisory · **2** explicit boundary violation · **1** operati
 ## Develop and verify
 
 ```sh
-git clone https://github.com/monotykamary/pi-contour.git
+git clone https://github.com/fabric-runtime/pi-contour.git
 cd pi-contour
 bun install --frozen-lockfile
 bun run check:fast        # typecheck + tests your working tree affects

@@ -7,10 +7,10 @@
   "author": "monotykamary",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/monotykamary/pi-contour.git"
+    "url": "git+https://github.com/fabric-runtime/pi-contour.git"
   },
-  "homepage": "https://github.com/monotykamary/pi-contour#readme",
-  "bugs": "https://github.com/monotykamary/pi-contour/issues",
+  "homepage": "https://github.com/fabric-runtime/pi-contour#readme",
+  "bugs": "https://github.com/fabric-runtime/pi-contour/issues",
   "publishConfig": {
     "access": "public"
   },
@@ -30,7 +30,7 @@
     "skills": [
       "./skills"
     ],
-    "image": "https://raw.githubusercontent.com/monotykamary/pi-contour/main/media/preview.png"
+    "image": "https://raw.githubusercontent.com/fabric-runtime/pi-contour/main/media/preview.png"
   },
   "bin": {
     "contour": "dist/cli.mjs"

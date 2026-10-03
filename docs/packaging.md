@@ -3,7 +3,7 @@
 ## Installation paths
 
 - `pi install npm:pi-contour` registers the npm package with Pi.
-- `pi install git:github.com/monotykamary/pi-contour` registers a Git checkout with Pi.
+- `pi install git:github.com/fabric-runtime/pi-contour` registers a Git checkout with Pi.
 - `bun install -g pi-contour` (or npm's equivalent) installs the independent CLI on PATH. It does not register a Pi extension.
 
 Both extension sources use `pi.extensions = ["./dist/index.mjs"]`. The CLI uses `bin.contour = "dist/cli.mjs"`; the skill directory and identity image are declared in the Pi manifest. Distribution files are committed so Pi's production-only Git installation does not need developer tools. No `prepare`, install, or postinstall lifecycle is required. `prepack` is a maintainer operation that regenerates the npm distribution.
