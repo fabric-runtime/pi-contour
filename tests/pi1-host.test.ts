@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { VERSION, createAgentSession, createCodemodeExtension, DefaultResourceLoader, SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { complex, repo } from "./helpers.js";
 
-it.each(["../src/index.ts", "../dist/index.mjs"])("Pi 1.0 loads Contour %s and executes nested review behind codemode-only", async (entrypoint) => {
-  expect(VERSION).toBe("1.0.0");
+it.each(["../src/index.ts", "../dist/index.mjs"])("Pi 1.1 loads Contour %s and executes nested review behind codemode-only", async (entrypoint) => {
+  expect(VERSION).toBe("1.1.0");
   const root = await repo({ "entry.ts": complex("migrationProbe") }, false);
   const previous = process.env.CONTOUR_BACKGROUND;
   process.env.CONTOUR_BACKGROUND = "0";
