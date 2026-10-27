@@ -1,0 +1,74 @@
+{
+  "budget": {
+    "inputs": { "used": "number", "amount": "number", "limit": "number" },
+    "outputs": { "admit": "boolean", "used": "number" }
+  },
+  "retention": {
+    "inputs": {
+      "count": "number",
+      "bytes": "number",
+      "maxCount": "number",
+      "maxBytes": "number"
+    },
+    "outputs": { "evict": "boolean" }
+  },
+  "workers": {
+    "inputs": { "requested": "number", "size": "number" },
+    "outputs": { "count": "number" }
+  },
+  "fit": {
+    "inputs": {
+      "index": "number",
+      "cost": "number",
+      "budget": "number",
+      "selected": "number",
+      "selectedCost": "number"
+    },
+    "outputs": { "selected": "number", "cost": "number" }
+  },
+  "lease": {
+    "inputs": {
+      "epochSame": "boolean",
+      "leaseSame": "boolean",
+      "present": "boolean"
+    },
+    "outputs": { "valid": "boolean" }
+  },
+  "snapshot": {
+    "inputs": { "baselineSame": "boolean", "targetSame": "boolean" },
+    "outputs": { "valid": "boolean" }
+  },
+  "observer": {
+    "inputs": {
+      "stopped": "boolean",
+      "busy": "boolean",
+      "pending": "boolean",
+      "preempt": "boolean",
+      "generationSame": "boolean"
+    },
+    "outputs": {
+      "launch": "boolean",
+      "queue": "boolean",
+      "abort": "boolean",
+      "rescan": "boolean"
+    }
+  },
+  "prune": {
+    "inputs": {
+      "protected": "boolean",
+      "removable": "boolean",
+      "pressure": "boolean",
+      "expired": "boolean",
+      "oversized": "boolean"
+    },
+    "outputs": { "remove": "boolean" }
+  },
+  "evidence": {
+    "inputs": {
+      "explicit": "boolean",
+      "direct": "boolean",
+      "ambiguous": "boolean"
+    },
+    "outputs": { "blocking": "boolean" }
+  }
+}
