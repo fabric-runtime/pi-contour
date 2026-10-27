@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { access, cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
@@ -24,7 +25,7 @@ process.env.CONTOUR_BACKGROUND = "0";
 try {
   const packed = JSON.parse((await run("npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", root], project)).stdout)[0];
   const archive = join(root, packed.filename);
-  for (const path of ["dist/index.mjs", "dist/cli.mjs", "dist/THIRD_PARTY_LICENSES.txt", "dist/startup.json", "media/cover.svg", "skills/pi-contour/SKILL.md"]) {
+  for (const path of ["dist/index.mjs", "dist/cli.mjs", "dist/THIRD_PARTY_LICENSES.txt", "dist/startup.json", "dist/proof-receipt.json", "proofs/ledger.json", "src/verified/manifest.json", "docs/licenses/gdp-wired-mit.txt", "media/cover.svg", "skills/pi-contour/SKILL.md"]) {
     assert.ok(packed.files.some((file: { path: string }) => file.path === path), `Missing ${path}`);
   }
   const repository = join(root, "repository"); await mkdir(repository);
@@ -41,7 +42,7 @@ try {
       installed = join(directory, "node_modules/pi-contour");
     } else {
       // The complete production-relevant Git layout, outside the sibling checkout.
-      for (const name of ["package.json", "bun.lock", "dist", "skills", "media", "README.md", "LICENSE"]) {
+      for (const name of ["package.json", "bun.lock", "dist", "skills", "media", "README.md", "LICENSE", "proofs", "src/verified"]) {
         await cp(join(project, name), join(directory, name), { recursive: true });
       }
       // Pi uses a production npm install for Git sources; also verify Bun's frozen lock.
@@ -49,8 +50,18 @@ try {
       await run("bun", ["install", "--omit=dev", "--omit=peer", "--ignore-scripts", "--frozen-lockfile"], directory);
       installed = directory;
     }
-    for (const name of ["pi-fovea", "typescript", "tsx", "@earendil-works/pi-coding-agent"]) {
+    for (const name of ["pi-fovea", "typescript", "tsx", "gdp-wired", "@earendil-works/pi-coding-agent"]) {
       await assert.rejects(access(join(directory, "node_modules", name)), `Unexpected ${mode} runtime install: ${name}`);
+    }
+    const receipt = JSON.parse(await readFile(join(installed, "dist/proof-receipt.json"), "utf8"));
+    assert.equal(receipt.schemaVersion, 1);
+    assert.equal(receipt.proof.prover, "gdp-wired@0.30.1");
+    assert.equal(receipt.proof.claims, 34);
+    assert.deepEqual(Object.keys(receipt.bundles).sort(), packed.files.map((file: { path: string }) => file.path).filter((path: string) => /^dist\/.*\.mjs$/.test(path) || ["dist/startup.json", "dist/THIRD_PARTY_LICENSES.txt"].includes(path)).sort());
+    assert.deepEqual(receipt.proof, JSON.parse(await readFile(join(installed, "src/verified/manifest.json"), "utf8")));
+    for (const [path, hash] of Object.entries(receipt.bundles)) {
+      assert.match(path, /^dist\/[a-zA-Z0-9_.-]+$/);
+      assert.equal(createHash("sha256").update(await readFile(join(installed, path))).digest("hex"), hash);
     }
     const cli = JSON.parse((await run(process.execPath, [join(installed, "dist/cli.mjs"), "review", "--root", repository, "--json"], directory)).stdout);
     assert.equal(cli.after.decisions, 12); assert.equal(cli.target, "staged");

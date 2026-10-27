@@ -1,12 +1,16 @@
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
+import { budget } from "../verified/budget.js";
+import { retention } from "../verified/retention.js";
+import { workers } from "../verified/workers.js";
 
 export const digest = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
 export const yieldLoop = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
 export async function mapLimit<T, R>(items: readonly T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 2 ** 40) throw new RangeError("Invalid worker limit");
   let next = 0;
   const out = new Array<R>(items.length);
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+  await Promise.all(Array.from({ length: workers({ requested: limit, size: items.length }).count }, async () => {
     while (next < items.length) { const i = next++; out[i] = await fn(items[i]!); }
   }));
   return out;
@@ -16,7 +20,10 @@ export async function mapLimit<T, R>(items: readonly T[], limit: number, fn: (it
 export class Lru<T> {
   private entries = new Map<string, { value: T; bytes: number }>();
   private bytes = 0;
-  constructor(private maxEntries: number, private maxBytes = Infinity) {}
+  constructor(private maxEntries: number, private maxBytes = 2 ** 40) {
+    if (maxBytes === Infinity) this.maxBytes = 2 ** 40;
+    for (const value of [this.maxEntries, this.maxBytes]) if (!Number.isSafeInteger(value) || value < 0 || value > 2 ** 40) throw new RangeError("Invalid cache limit");
+  }
   get(key: string): T | undefined {
     const entry = this.entries.get(key);
     if (!entry) return;
@@ -25,11 +32,12 @@ export class Lru<T> {
   }
   snapshot(): Array<[string, T]> { return [...this.entries].map(([key, entry]) => [key, entry.value]); }
   set(key: string, value: T, bytes = 1): void {
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > 2 ** 40) throw new RangeError("Invalid cache entry size");
     const previous = this.entries.get(key);
     if (previous) { this.bytes -= previous.bytes; this.entries.delete(key); }
     if (bytes > this.maxBytes) return;
     this.entries.set(key, { value, bytes }); this.bytes += bytes;
-    while (this.entries.size > this.maxEntries || this.bytes > this.maxBytes) {
+    while (retention({ count: this.entries.size, bytes: this.bytes, maxCount: this.maxEntries, maxBytes: this.maxBytes }).evict) {
       const key = this.entries.keys().next().value!;
       this.bytes -= this.entries.get(key)!.bytes; this.entries.delete(key);
     }
@@ -38,6 +46,8 @@ export class Lru<T> {
 
 export function run(command: string, args: string[], cwd: string, options: { input?: string; signal?: AbortSignal; maxBytes?: number; allowFailure?: boolean } = {}): Promise<{ stdout: Buffer; code: number; stderr: string }> {
   options.signal?.throwIfAborted();
+  const maxBytes = options.maxBytes ?? 16 * 1024 * 1024;
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0 || maxBytes > 2 ** 40) throw new RangeError("Invalid output limit");
   return new Promise((resolve, reject) => {
     const git = command === "git";
     // Source observation must not invoke fsmonitor or fetch missing promisor objects.
@@ -50,8 +60,10 @@ export function run(command: string, args: string[], cwd: string, options: { inp
     const timer = setTimeout(() => { failure = new Error(`${command} exceeded 45s deadline`); child.kill("SIGKILL"); }, 45_000);
     timer.unref();
     child.stdout.on("data", (chunk: Buffer) => {
-      bytes += chunk.length;
-      if (bytes > (options.maxBytes ?? 16 * 1024 * 1024)) { failure = new Error(`${command} output limit exceeded`); child.kill("SIGKILL"); }
+      if (failure) return;
+      const step = budget({ used: bytes, amount: chunk.length, limit: maxBytes });
+      bytes = step.used;
+      if (!step.admit) { failure = new Error(`${command} output limit exceeded`); child.kill("SIGKILL"); }
       else chunks.push(chunk);
     });
     child.stderr.on("data", chunk => { stderr = (stderr + String(chunk)).slice(-8192); });

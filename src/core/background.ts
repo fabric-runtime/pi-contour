@@ -1,3 +1,5 @@
+import { observer } from "../verified/observer.js";
+
 /** Quiet latest-generation scheduler. Polls do not preempt work; edit bursts debounce.
  * Only explicit checkpoints expose results. Timers cannot keep Pi alive after shutdown.
  */
@@ -24,15 +26,19 @@ export class SilentObserver {
     this.timer = setTimeout(() => { this.timer = undefined; this.begin(); }, this.debounceMs);
     this.timer.unref();
   }
+  private decision(generation = this.generation) {
+    return observer({ stopped: this.stopped, busy: !!this.controller, pending: this.pending, preempt: this.preempt, generationSame: generation === this.generation });
+  }
   private begin(): void {
-    if (this.stopped) return;
-    if (this.controller) { this.pending = true; if (this.preempt) this.controller.abort(); this.preempt = false; return; }
+    const decision = this.decision();
+    if (decision.queue) { this.pending = true; if (decision.abort) this.controller!.abort(); this.preempt = false; return; }
+    if (!decision.launch) return;
     this.preempt = false;
     const generation = this.generation;
     const controller = this.controller = new AbortController();
     this.task = this.scan(controller.signal).then(() => {}, () => {}).finally(() => {
       this.controller = undefined;
-      if (!this.stopped && (this.pending || generation !== this.generation)) { this.pending = false; this.wake(); }
+      if (this.decision(generation).rescan) { this.pending = false; this.wake(); }
     });
   }
   async stop(): Promise<void> {

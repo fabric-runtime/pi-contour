@@ -8,8 +8,9 @@
         "@earendil-works/pi-coding-agent": "1.3.0",
         "@types/node": "^22.0.0",
         "esbuild": "^0.28.1",
+        "gdp-wired": "0.30.1",
         "knip": "^6.32.0",
-        "pi-fovea": "0.27.0",
+        "pi-fovea": "0.32.0",
         "tsx": "^4.19.0",
         "typebox": "1.3.27",
         "typescript": "^5.6.0",
@@ -417,6 +418,8 @@
 
     "gcp-metadata": ["gcp-metadata@8.1.2", "", { "dependencies": { "gaxios": "^7.0.0", "google-logging-utils": "^1.0.0", "json-bigint": "^1.0.0" } }, "sha512-zV/5HKTfCeKWnxG0Dmrw51hEWFGfcF2xiXqcA3+J90WDuP0SvoiSO5ORvcBsifmx/FoIjgQN3oNOGaQ5PhLFkg=="],
 
+    "gdp-wired": ["gdp-wired@0.30.1", "", { "peerDependencies": { "@gdp-ts/core": ">=0.1.0", "typescript": ">=5.0.0" }, "optionalPeers": ["@gdp-ts/core", "typescript"] }, "sha512-kWCD7JQuLfCbNQyqu+v52kpGjhiFwFqFyOWVZP6VrrS984Rr1vFmUsQlGFxi4a3sRZpYDODnQWGGvPICdydBwA=="],
+
     "get-east-asian-width": ["get-east-asian-width@1.6.0", "", {}, "sha512-QRbvDIbx6YklUe6RxeTeleMR0yv3cYH6PsPZHcnVn7xv7zO1BHN8r0XETu8n6Ye3Q+ahtSarc3WgtNWmehIBfA=="],
 
     "get-tsconfig": ["get-tsconfig@4.14.3", "", { "dependencies": { "resolve-pkg-maps": "^1.0.0" } }, "sha512-++QEw4DIY7WGoukz+/+A/8dGYPT9l9yIadnmSgZ8Rjr3YVSVDipQSO9CdnJo9ePqFqUUqh+wk9uIaoiAwsiPkA=="],
@@ -493,7 +496,7 @@
 
     "pathval": ["pathval@2.0.1", "", {}, "sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ=="],
 
-    "pi-fovea": ["pi-fovea@0.27.0", "", { "optionalDependencies": { "@ast-grep/cli": "^0.45.3" }, "peerDependencies": { "@earendil-works/pi-coding-agent": "*", "@earendil-works/pi-tui": "*", "typebox": "*" }, "optionalPeers": ["@earendil-works/pi-coding-agent", "@earendil-works/pi-tui"], "bin": { "fovea": "dist/cli.mjs" } }, "sha512-XgbNh41ADrISTYd798DIbnbZwRabG/xa0fnO3kaJfK6XFD7t8gYhpT6OZDwuJ+H7jMMFuaLmV8y4rIiCRCiIlg=="],
+    "pi-fovea": ["pi-fovea@0.32.0", "", { "optionalDependencies": { "@ast-grep/cli": "^0.45.3" }, "peerDependencies": { "@earendil-works/pi-coding-agent": "*", "@earendil-works/pi-tui": "*", "typebox": "*" }, "optionalPeers": ["@earendil-works/pi-coding-agent", "@earendil-works/pi-tui"], "bin": { "fovea": "dist/cli.mjs" } }, "sha512-QFNJxV85fkpHeXSDdBHXOq4t6PFVwqfQoKIY4ZD+sq/0bZk/11muh9LhMFXRzf6K96vu7m/scqdKvX28GIYkkA=="],
 
     "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 

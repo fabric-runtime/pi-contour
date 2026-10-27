@@ -1,3 +1,5 @@
+import { budget } from "../verified/budget.js";
+import { evidence } from "../verified/evidence.js";
 import { diffuseMass, SUBSTRATE_VERSION, type Edge, type Graph } from "pi-fovea/substrate";
 import { METRICS_VERSION } from "./metrics.js";
 import { emptyTotals } from "./model.js";
@@ -65,7 +67,7 @@ function components(edges: ImportEdge[]): string[][] {
 function collect(before: Model, after: Model, changed: Set<string>, options: AnalysisOptions): Finding[] {
   const findings: Finding[] = [];
   const push = (finding: Omit<Finding, "id">): void => {
-    findings.push({ ...finding, id: digest(JSON.stringify([finding.category, finding.title, finding.evidence, finding.before, finding.after])).slice(0, 20) });
+    findings.push({ ...finding, blocking: finding.blocking && evidence({ explicit: finding.category === "policy", direct: finding.evidence.some(site => site.relation === "relative import"), ambiguous: finding.evidence.some(site => site.relation === "possible import") }).blocking, id: digest(JSON.stringify([finding.category, finding.title, finding.evidence, finding.before, finding.after])).slice(0, 20) });
   };
   for (const file of changed) {
     const current = after.files.get(file), previous = before.files.get(file);
@@ -128,7 +130,7 @@ export async function reviewModels(comparison: Comparison, before: Model, after:
   const queues = categories.map(category => all.filter(f => f.category === category).sort((a, b) => (b.after - b.before) - (a.after - a.before) || a.id.localeCompare(b.id)));
   const selected: Finding[] = [];
   while (selected.length < options.maxFindings && queues.some(q => q.length)) for (const queue of queues) {
-    if (queue.length && selected.length < options.maxFindings) selected.push(queue.shift()!);
+    if (queue.length && budget({ used: selected.length, amount: 1, limit: options.maxFindings }).admit) selected.push(queue.shift()!);
   }
   const graph = projection(after.graph);
   for (const finding of selected) {

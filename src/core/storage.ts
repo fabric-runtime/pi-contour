@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 import { basename, join } from "node:path";
 import { tmpdir } from "node:os";
 import { digest } from "./util.js";
+import { retention } from "../verified/retention.js";
+import { prune } from "../verified/prune.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 export const STORAGE_LIMITS = { bytes: 128 * 1024 * 1024, files: 128, ageMs: 7 * DAY, tempGraceMs: DAY, intervalMs: 60_000 };
@@ -173,9 +175,9 @@ export class TemporaryStorage {
       result.bytesBefore = bytes; result.filesBefore = count;
       entries.sort((a, b) => a.stat.mtimeMs - b.stat.mtimeMs || a.name.localeCompare(b.name));
       for (const entry of entries) {
-        if (!entry.removable || protectedNames.has(entry.name)) continue;
-        if (!tempName.test(entry.name) && now - entry.stat.mtimeMs <= this.limits.ageMs
-          && bytes <= this.limits.bytes && count <= this.limits.files && entry.stat.size <= this.cap(entry.name)) continue;
+        if (!prune({ protected: protectedNames.has(entry.name), removable: entry.removable,
+          pressure: retention({ count, bytes, maxCount: this.limits.files, maxBytes: this.limits.bytes }).evict,
+          expired: !!tempName.test(entry.name) || now - entry.stat.mtimeMs > this.limits.ageMs, oversized: entry.stat.size > this.cap(entry.name) }).remove) continue;
         result.candidates.push(entry.name);
         try {
           if (dryRun || await this.remove(entry.name, entry.stat, directory, protectedNames)) {

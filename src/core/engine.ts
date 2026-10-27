@@ -1,3 +1,4 @@
+import { snapshot as snapshotValid } from "../verified/snapshot.js";
 import { SnapshotReader } from "./snapshot.js";
 import { MetricsCache } from "./metrics.js";
 import { buildModel } from "./model.js";
@@ -38,7 +39,7 @@ export class ContourEngine {
       signal?.throwIfAborted();
       // Analysis can take time. A checkpoint must not describe an index that moved meanwhile.
       const verified = await this.reader.capture(root, target, signal);
-      if (verified.before.id !== comparison.before.id || verified.after.id !== comparison.after.id) throw new Error("Repository changed during analysis; retry review");
+      if (!snapshotValid({ baselineSame: verified.before.id === comparison.before.id, targetSame: verified.after.id === comparison.after.id }).valid) throw new Error("Repository changed during analysis; retry review");
       this.reports.set(key, report, JSON.stringify(report).length * 2); this.stats.reviews++;
       return structuredClone(report);
     });

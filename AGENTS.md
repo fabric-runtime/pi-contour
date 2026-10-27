@@ -47,6 +47,14 @@ native-loader alias bypasses. From the sibling Fabric checkout, run
 medians with warm filesystem caches. A repeated import in one process measures
 cache hits, not boot; use structural checks rather than CI timing thresholds.
 
+## Executed policy proofs
+
+`proofs/policies.ts` and independent `proofs/laws.ts` define the generated runtime
+policies. After changing proof inputs or their generator, run
+`bun run proofs:generate`, review `src/verified/`, then `bun run check:fast`.
+Never hand-edit generated policies or weaken a law. `docs/proofs.md` states the
+checked guarantees and host obligations. Builds require fresh proof receipts.
+
 ## Invariants
 
 - Commit reviews use HEAD versus the Git index, never live worktree bytes.

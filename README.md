@@ -18,9 +18,18 @@
 
 A patch can make individual functions shorter while moving decisions into helpers. It can remove a duplicate while creating a heavily coupled abstraction. Contour keeps those tradeoffs visible: **before/after measurements, source witnesses, and a concrete review question**, with heat diffusion showing where a finding's modeled exposure travels.
 
+## Checked runtime policies
+
+Contour executes nine generated gdp-wired policies covering budgets, retention,
+worker limits, prefix selection, leases, snapshot freshness, observer admission,
+cleanup eligibility and explicit-policy evidence. The 34 laws are checked during
+development and release; no prover is loaded at runtime. This is **not** a proof
+of arbitrary reviewed code or of Contour’s entire host implementation.
+See [proof coverage and boundaries](docs/proofs.md).
+
 ## Install
 
-**0.4.6 compatibility:** tested against Pi 1.0.0, including native nested-tool execution and codemode/Fabric declaration hiding. Pi APIs and TypeBox are wildcard peers supplied by the host; use Node 22.19+ with Pi. The standalone CLI still supports Node 20+.
+**Compatibility:** tested against Pi 1.3.0, including native nested-tool execution and codemode/Fabric declaration hiding. Pi APIs and TypeBox are wildcard peers supplied by the host; use Node 22.19+ with Pi. The standalone CLI still supports Node 20+.
 
 For your Pi setup, choose **one** source:
 

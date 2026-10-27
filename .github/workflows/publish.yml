@@ -82,7 +82,7 @@ jobs:
 
       - name: Check
         if: steps.release.outputs.mode != 'skip'
-        run: bun run typecheck
+        run: bun run check:proofs && bun run typecheck
 
       - name: Pack
         if: steps.release.outputs.mode != 'skip'
