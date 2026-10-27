@@ -1,6 +1,7 @@
 import { lstat, open, realpath } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
+import { budget as admitBudget } from "../verified/budget.js";
 import { digest, Lru, mapLimit, run } from "./util.js";
 import type { Comparison, Omission, Snapshot, SourceFile, Target } from "./types.js";
 
@@ -23,7 +24,7 @@ export class SnapshotReader {
   private trees = new Lru<Snapshot>(4, 64 * 1024 * 1024);
   readonly stats = { blobReads: 0, workReads: 0, statHits: 0 };
   constructor(readonly limits: SnapshotLimits = DEFAULT_LIMITS) {
-    for (const value of Object.values(limits)) if (!Number.isSafeInteger(value) || value < 1) throw new Error("Invalid snapshot limits");
+    for (const value of Object.values(limits)) if (!Number.isSafeInteger(value) || value < 1 || value > 2 ** 40) throw new Error("Invalid snapshot limits");
   }
   private async git(root: string, args: string[], signal?: AbortSignal, input?: string, maxBytes?: number): Promise<Buffer> {
     return (await run("git", args, root, { signal, input, maxBytes })).stdout;
@@ -52,7 +53,7 @@ export class SnapshotReader {
       if (EXCLUDED.test(entry.file)) { omissions.push({ file: entry.file, reason: "excluded generated/dependency directory" }); continue; }
       if (!worktree && entry.mode !== "100644" && entry.mode !== "100755") { omissions.push({ file: entry.file, reason: "symlink, submodule, or non-regular entry" }); continue; }
       if (!SUPPORTED.test(entry.file)) { if (CODE.test(entry.file)) omissions.push({ file: entry.file, reason: "unsupported language (v0.1 metrics cover JS/TS)" }); continue; }
-      if (selected.length >= this.limits.maxFiles) omissions.push({ file: entry.file, reason: "file count cap" });
+      if (!admitBudget({ used: selected.length, amount: 1, limit: this.limits.maxFiles }).admit) omissions.push({ file: entry.file, reason: "file count cap" });
       else selected.push(entry);
     }
     return { selected, omissions };
@@ -75,10 +76,11 @@ export class SnapshotReader {
     let bytes = 0;
     const accepted = selected.filter(entry => {
       const size = this.blobs.get(entry.oid)?.bytes ?? sizes.get(entry.oid)!;
-      if (size > this.limits.maxFileBytes || bytes + size > this.limits.maxTotalBytes) {
+      const step = admitBudget({ used: bytes, amount: size, limit: this.limits.maxTotalBytes });
+      if (!admitBudget({ used: 0, amount: size, limit: this.limits.maxFileBytes }).admit || !step.admit) {
         omissions.push({ file: entry.file, reason: size > this.limits.maxFileBytes ? "file byte cap" : "snapshot byte cap" }); return false;
       }
-      bytes += size; return true;
+      bytes = step.used; return true;
     });
     const missing = [...new Set(accepted.map(e => e.oid).filter(oid => this.blobs.get(oid) === undefined))];
     // Retain this invocation's accepted blobs even if the bounded LRU evicts others.
@@ -143,10 +145,11 @@ export class SnapshotReader {
     for (const item of stats) {
       if (!item) continue;
       if (!item.stat.isFile()) { omissions.push({ file: item.entry.file, reason: "non-regular working-tree source" }); continue; }
-      if (item.stat.size > this.limits.maxFileBytes || budget + item.stat.size > this.limits.maxTotalBytes) {
+      const step = admitBudget({ used: budget, amount: item.stat.size, limit: this.limits.maxTotalBytes });
+      if (!admitBudget({ used: 0, amount: item.stat.size, limit: this.limits.maxFileBytes }).admit || !step.admit) {
         omissions.push({ file: item.entry.file, reason: item.stat.size > this.limits.maxFileBytes ? "file byte cap" : "snapshot byte cap" }); continue;
       }
-      budget += item.stat.size; accepted.push({ entry: item.entry, stamp: stampOf(item.stat), size: item.stat.size });
+      budget = step.used; accepted.push({ entry: item.entry, stamp: stampOf(item.stat), size: item.stat.size });
     }
     const values = await mapLimit(accepted, 24, async ({ entry, stamp }) => {
       signal?.throwIfAborted();

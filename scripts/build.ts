@@ -1,4 +1,6 @@
 import { build } from "esbuild";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile, chmod, rm } from "node:fs/promises";
 import { createRequire, isBuiltin } from "node:module";
 import { dirname, join } from "node:path";
@@ -6,6 +8,7 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = join(root, "dist");
+execFileSync("bun", ["run", "proofs:artifact"], { cwd: root, stdio: "inherit" });
 const manifest = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as { version: string };
 // Only this package's generated artifacts are removed, regardless of invoking cwd.
 await rm(dist, { recursive: true, force: true });
@@ -34,7 +37,7 @@ const entry = Object.keys(outputs).find(path => outputs[path]!.entryPoint === "s
 if (!entry) throw new Error("Missing extension entrypoint");
 visit(entry);
 const startupInputs = [...startup].flatMap(path => Object.keys(outputs[path]!.inputs));
-const workspaceInputs = ["pi-fovea/src/workspace.ts", "pi-fovea/src/core/roots.ts", "pi-fovea/src/core/asyncutil.ts"];
+const workspaceInputs = ["pi-fovea/src/workspace.ts", "pi-fovea/src/core/roots.ts", "pi-fovea/src/core/asyncutil.ts", "pi-fovea/src/verified/generated/control.js"];
 if (startupInputs.some(path => path.includes("typescript/") || path.endsWith("core/engine.ts")
   || (path.includes("pi-fovea/") && !workspaceInputs.some(allowed => path.endsWith(allowed))))) {
   throw new Error("Startup may import only Fovea's lightweight workspace API, never graph/parser/analysis modules");
@@ -50,6 +53,13 @@ await chmod(join(dist, "cli.mjs"), 0o755);
 const fovea = dirname(require.resolve("pi-fovea/substrate"));
 const typescript = dirname(require.resolve("typescript/package.json"));
 const licenses = "pi-fovea\n" + await readFile(join(fovea, "../LICENSE"), "utf8")
-  + "\nTypeScript\n" + await readFile(join(typescript, "LICENSE.txt"), "utf8");
+  + "\nTypeScript\n" + await readFile(join(typescript, "LICENSE.txt"), "utf8")
+  + "\ngdp-wired generated runtime\n" + await readFile(join(root, "docs/licenses/gdp-wired-mit.txt"), "utf8");
 await writeFile(join(dist, "THIRD_PARTY_LICENSES.txt"), licenses.replaceAll("\r\n", "\n").trimEnd() + "\n");
+const proof = JSON.parse(await readFile(join(root, "src/verified/manifest.json"), "utf8"));
+const bundles: Record<string, string> = {};
+for (const file of [...Object.keys(outputs), "dist/startup.json", "dist/THIRD_PARTY_LICENSES.txt"]) {
+  bundles[file] = createHash("sha256").update(await readFile(join(root, file))).digest("hex");
+}
+await writeFile(join(dist, "proof-receipt.json"), JSON.stringify({ schemaVersion: 1, proof, bundles }, null, 2) + "\n");
 console.log(`Bundled standalone CLI and Pi extension. Static extension: ${startupBytes} bytes; analysis loads on demand.`);

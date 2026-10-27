@@ -64,13 +64,14 @@ export default function contour(pi: ExtensionAPI): void {
     observer = new SilentObserver(async signal => {
       const targets = roots.list();
       if (!targets.length) return;
+      const { lease: validLease } = await import("./verified/lease.js");
       // Alternate recent activity with a round-robin backstop: a busy root
       // cannot starve quieter projects indefinitely. One root per pass.
       const root = (preferDirty ? dirty.values().next().value : undefined) ?? targets[cursor++ % targets.length]!;
       preferDirty = !preferDirty;
       dirty.delete(root);
       const generation = epoch, lease = roots.lease(root);
-      const current = () => generation === epoch && roots.lease(root) === lease;
+      const current = () => validLease({ epochSame: generation === epoch, leaseSame: roots.lease(root) === lease, present: roots.list().includes(root) }).valid;
       activeScan = root;
       try {
         const project = await discovery.discover(root, root, true);
@@ -122,13 +123,14 @@ export default function contour(pi: ExtensionAPI): void {
   const review = async (ctx: ExtensionContext, root: string | undefined, target: Target, options: Partial<AnalysisOptions> = {}, signal?: AbortSignal) => {
     const generation = epoch;
     const selected = await selectRoot(root, ctx, false, true);
+    const { lease: validLease } = await import("./verified/lease.js");
     const lease = roots.lease(selected), heldObserver = observer;
     const checkpoint = { root: selected, controller: new AbortController() };
     checkpoints.add(checkpoint);
     const abort = () => checkpoint.controller.abort(signal?.reason);
     signal?.addEventListener("abort", abort, { once: true });
     if (signal?.aborted) abort();
-    const current = () => epoch === generation && roots.lease(selected) === lease;
+    const current = () => validLease({ epochSame: epoch === generation, leaseSame: roots.lease(selected) === lease, present: roots.list().includes(selected) }).valid;
     try {
       // An explicit checkpoint takes priority over speculative background work.
       await heldObserver?.stop();

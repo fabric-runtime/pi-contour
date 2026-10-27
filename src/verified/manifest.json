@@ -1,0 +1,33 @@
+{
+  "prover": "gdp-wired@0.30.1",
+  "claims": 34,
+  "sources": {
+    "proofs/policies.ts": "13e63c4caccd946f8372cb81ef4b0e3825e0c1e92a9edc95121284e7afe16d45",
+    "proofs/laws.ts": "f34a4d00e479365e68f1d0ab4ad9a62ce245ad118f21c0ca7bc0abcc0d27f8fd",
+    "proofs/abi.json": "ba76cbb9cd4b96bc5cfb370d839c33679e36254cbc3cd5b660196d396a066dc1",
+    "proofs/ledger.json": "5743935c26eccfde5525245515a3990a0b3d78c33acf03e3c9c5667236a40e47",
+    "scripts/compile-proofs.ts": "1856042755a63addb857dc8b7d87b33a9174fb3a613d73c4978360b6564c31bf",
+    "scripts/check-proofs.ts": "3cca9e430ab3c65ac08e41370e0a8f8d44517f9349c330a8c39ed7288c86184f",
+    "bun.lock": "a048d198d4908a77fd8b63883546b5844ade041c3656feff5d6d0626acf821f6"
+  },
+  "outputs": {
+    "src/verified/budget.js": "009a7cf9acfa6fa3ba6a40493c63873431e3384057e384cbfdd1bbd48c6b3047",
+    "src/verified/budget.d.ts": "b54f4e3e35af612817a4e51fa50382bb766ac058eb7854ebaacc0ac5e73eb014",
+    "src/verified/retention.js": "3e1538fbdbe1cc447c01884ab11bbf8bb890b54aef14e3f2feb1ec917611c6b7",
+    "src/verified/retention.d.ts": "e0863f7aecb945b26f7a8a9f30608cdeb9d73c509222b07edf85c6ce0ec3d5a2",
+    "src/verified/workers.js": "39a83ae4784c9ce7ff3f27976cfddd025b7b3e139c33a293cfcef71a949473e9",
+    "src/verified/workers.d.ts": "829ccfbf0787bd3c532724224ce54f08e3870dfdde0be9f8dd6232c2e6f90179",
+    "src/verified/fit.js": "feb2a454982bf71f6c5c3a4a0a0678ec7e5ade38f8b0024a5fe0108be6821150",
+    "src/verified/fit.d.ts": "a1d260a4d3d134f33d5e37d617578554406d3f453b279660d6d87edfc6b816a2",
+    "src/verified/lease.js": "de18307af9f16b3f63dfec5db09eef65872889a62092916de198324ec86ef803",
+    "src/verified/lease.d.ts": "d28745edd86dfe47b89717fc29cee5691a7306ffe586e6dcf2eb27283aa580c4",
+    "src/verified/snapshot.js": "75730dcb53910d2d0937944352dd766e7028a47c3518825d11fa407e35650cf4",
+    "src/verified/snapshot.d.ts": "187c944095260b8bf968f715fcc028823f7f3383185878e5376b57bb119acf53",
+    "src/verified/observer.js": "fed965147530de934e7dd3f89ee0491c352e777204cdfa83b8a3a511b501b3f5",
+    "src/verified/observer.d.ts": "47e80e57de24a329c1c733c6dde61db1aae279b3d8ccd37e71b43ba420e7cded",
+    "src/verified/prune.js": "e0061960244e839caaf57f307fa3343bdedb05dd38f2b2c839cfc2b88d4a2c93",
+    "src/verified/prune.d.ts": "1df3bf471b6f7967a73170ead845c10fa33d4169feccabc079735e95571c787a",
+    "src/verified/evidence.js": "620aa86cfbc007bb2b47e7128ea3428b4310b29f3e7ce73fec5ce5eb9c0a2202",
+    "src/verified/evidence.d.ts": "819aefe3c63e5d9ca535335f209a7eef0d075f967bb3394b4bf8529a630b9ce8"
+  }
+}
