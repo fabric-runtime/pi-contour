@@ -35,7 +35,7 @@
   },
   "bundles": {
     "dist/index.mjs": "7f9660c35c12588856f29634c7ebba466babf9d70f0048c6eec5c01072be2b0d",
-    "dist/cli.mjs": "721f4e997599a81fb6bf741b85c59c7e48a151a8eddf76dfbceb5950f0ae78d8",
+    "dist/cli.mjs": "9a90168e596cdaabf1ff5449aff83ee45e48e1bf6eb79af06767b6453cafaddf",
     "dist/heat-certificate-JXYRO4UR.mjs": "c2b7651818429169c7b87a4c7386c8d753b59803dd47520557253c72b84d0fe5",
     "dist/engine-KJLFSAJJ.mjs": "1077c82137e0ab0c458e832c4a62aebc9f9c5a925898d82825b629d02b1ea3e1",
     "dist/chunk-M7DYGDJA.mjs": "bfe709b5fa73083a93391291a14cc86e1f27c537178ad58918f1fb9833a55868",
