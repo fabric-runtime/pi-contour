@@ -17,7 +17,7 @@ The executable acceptance criteria are work counts, not brittle timing assertion
 
 ## Rotating roots and disk hydration
 
-Run `bunx tsx scripts/bench-hydration.ts` for a bounded, real-Git workload with four roots, 60 files / 720 callables per root, and three warm round-robin passes. It uses isolated temporary storage and verifies that returned reports remain equal with no parses, model rebuilds, or review recomputations.
+On POSIX platforms (macOS/Linux; uid-based storage ownership checks are required), run `bunx tsx scripts/bench-hydration.ts` for a bounded, real-Git workload with four roots, 60 files / 720 callables per root, and three warm round-robin passes. It uses isolated temporary storage and verifies that returned reports remain equal with no parses, model rebuilds, or review recomputations.
 
 The profiled `hydrate` in `dist/chunk-3WCYVLDL.mjs` maps to `MetricsCache.hydrate` in `src/core/metrics.ts`. Previously, `ContourEngine.review` invoked it before looking up completed reports. Background observation rotates roots on its 5s polling schedule, but the hydration tracker retains only two roots. Three or more rotating roots could therefore repeatedly read, parse, checksum, and reinsert persisted facts just to return an already-completed report.
 

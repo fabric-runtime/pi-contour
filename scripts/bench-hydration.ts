@@ -9,8 +9,11 @@ import { run } from "../src/core/util.js";
 
 // Round-robin background workload: more roots than the two-root hydration LRU.
 // Use real Git snapshots and isolated disk facts, not a repeated module import.
+if (typeof process.getuid !== "function") {
+  throw new Error("The hydration benchmark requires POSIX uid-based storage ownership checks.");
+}
 const parent = await realpath(await mkdtemp(join(tmpdir(), "contour-hydration-")));
-const storage = new TemporaryStorage(join(parent, `pi-contour-${process.getuid!()}`));
+const storage = new TemporaryStorage(join(parent, `pi-contour-${process.getuid()}`));
 const original = { read: temporaryStorage.read, write: temporaryStorage.write, housekeep: temporaryStorage.housekeep };
 let factReads = 0;
 temporaryStorage.read = async (...args) => { if (args[1] === "facts") factReads++; return storage.read(...args); };
