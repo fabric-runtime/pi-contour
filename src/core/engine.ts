@@ -1,6 +1,7 @@
 import { snapshot as snapshotValid } from "../verified/snapshot.js";
 import { SnapshotReader } from "./snapshot.js";
 import { MetricsCache } from "./metrics.js";
+import { temporaryStorage } from "./storage.js";
 import { buildModel } from "./model.js";
 import { configId, optionsFor, reviewModels } from "./review.js";
 import { digest, Lru } from "./util.js";
@@ -21,9 +22,15 @@ export class ContourEngine {
       signal?.throwIfAborted();
       const comparison = await this.reader.capture(root, target, signal);
       const key = `${comparison.root}\0${target}\0${comparison.before.revision}\0${comparison.before.id}\0${comparison.after.id}\0${configId(options)}`;
-      await this.metrics.hydrate(comparison.root);
       const hit = this.reports.get(key);
-      if (hit) { this.stats.reportHits++; return structuredClone(hit); }
+      if (hit) {
+        // The freshly captured identity already owns a complete report. Rotating
+        // roots must not reload disk facts just to return that immutable result.
+        await temporaryStorage.housekeep(comparison.root);
+        signal?.throwIfAborted();
+        this.stats.reportHits++; return structuredClone(hit);
+      }
+      await this.metrics.hydrate(comparison.root);
       const models: Model[] = [];
       for (const snapshot of [comparison.before, comparison.after]) {
         // Graph identity depends on extraction content, not staging metadata. Identical

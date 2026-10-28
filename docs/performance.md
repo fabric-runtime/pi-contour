@@ -15,9 +15,30 @@ An independent engine reused persisted facts with zero parses. Event-loop delay 
 
 The executable acceptance criteria are work counts, not brittle timing assertions: a no-change pass must perform zero parses, source/blob rereads, model rebuilds, and review/heat recomputations. A one-file edit must parse/read only that file. Staging already analyzed bytes must reuse the model. Content and configuration changes must never reuse stale reports.
 
+## Rotating roots and disk hydration
+
+Run `bunx tsx scripts/bench-hydration.ts` for a bounded, real-Git workload with four roots, 60 files / 720 callables per root, and three warm round-robin passes. It uses isolated temporary storage and verifies that returned reports remain equal with no parses, model rebuilds, or review recomputations.
+
+The profiled `hydrate` in `dist/chunk-3WCYVLDL.mjs` maps to `MetricsCache.hydrate` in `src/core/metrics.ts`. Previously, `ContourEngine.review` invoked it before looking up completed reports. Background observation rotates roots on its 5s polling schedule, but the hydration tracker retains only two roots. Three or more rotating roots could therefore repeatedly read, parse, checksum, and reinsert persisted facts just to return an already-completed report.
+
+The report lookup now precedes hydration, but still follows a fresh snapshot capture with the same content/configuration key. A hit still runs throttled storage housekeeping, checks cancellation, and returns a clone. A miss still hydrates normally. No snapshot freshness checks, diagnostic handling, or policy laws were relaxed.
+
+One serial local before/after run measured the twelve warm reviews:
+
+| Measurement | Before | After |
+|---|---:|---:|
+| Wall time | 1,430ms | 1,239ms |
+| Process CPU time | 380ms | 301ms |
+| Fact-file reads | 12 | 0 |
+| Disk fact reinsertions | 720 | 0 |
+| Parses / model rebuilds | 0 / 0 | 0 / 0 |
+| Completed-report hits | 12 | 12 |
+
+That is about 13% less wall time and 21% less process CPU in this run, not a prediction for every Pi session. An earlier run concurrent with checks had noisy wall time (4,202ms before / 4,862ms after) despite eliminating the same work. The regression tests enforce eliminated hydration and retained freshness/immutability, not timing thresholds. The original live session was not replayed.
+
 ## Startup is a separate budget
 
-The v0.2.0 interface's complete static bundle graph measured **18,932 bytes**, including Fovea's lightweight workspace API but excluding Pi's supplied TypeBox and loader. Build metadata allowlists only the workspace entry, root coordination, and scheduling primitives; static parsers, graph modules, and the analysis engine remain forbidden. The 32KiB ceiling is unchanged.
+The v0.2.0 interface's complete static bundle graph measured **18,932 bytes**, including Fovea's lightweight workspace API but excluding Pi's supplied TypeBox and loader. Build metadata allowlists only the workspace entry, root coordination, and scheduling primitives; static parsers, graph modules, and the analysis engine remain forbidden. The current build enforces a 20KiB ceiling and zero non-builtin static imports across the complete static graph (20,436 bytes in the hydration optimization build).
 
 An isolated package probe with Pi 0.85.1 and Node 26.5.0 measured `session_start` at **0.153–0.186ms**. The full `DefaultResourceLoader.reload()` path, including package/resource discovery and Jiti loading, took **79–125ms**. These are local observations, not a latency guarantee or a measurement of Contour alone versus a baseline Pi startup.
 

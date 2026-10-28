@@ -70,6 +70,44 @@ describe("temporary storage lifecycle wiring", () => {
     await engine.review(copy); expect(engine.stats.reportHits).toBe(1);
     expect(await readdir(fixtureData.directory)).not.toContain(fixtureData.storage.name("stale", "facts"));
   });
+  it("skips hydration on freshly captured report hits across rotating roots", async () => {
+    const { storage } = await fixture(); wire(storage);
+    const roots = await Promise.all([0, 1, 2].map(i => repo({ "a.ts": `export const a = ${i};` })));
+    const engine = new ContourEngine();
+    const reports = [];
+    for (const root of roots) reports.push(await engine.review(root, "working-tree"));
+    const hydrate = vi.spyOn(engine.metrics, "hydrate"), read = vi.spyOn(storage, "read");
+    const housekeep = vi.spyOn(storage, "housekeep"), capture = vi.spyOn(engine.reader, "capture");
+    for (let round = 0; round < 2; round++) for (let i = 0; i < roots.length; i++) {
+      const report = await engine.review(roots[i]!, "working-tree");
+      expect(report).toEqual(reports[i]);
+      report.after.sloc = 999; report.coverage.notes.length = 0;
+    }
+    expect(capture).toHaveBeenCalledTimes(6);
+    expect(hydrate).not.toHaveBeenCalled(); expect(read).not.toHaveBeenCalled();
+    expect(housekeep).toHaveBeenCalledTimes(6); expect(engine.stats.reportHits).toBe(6);
+    // A changed snapshot misses even though that root has a cached report.
+    await put(roots[0]!, "a.ts", "export const a = 42;\nexport const b = 1;");
+    const changed = await engine.review(roots[0]!, "working-tree");
+    expect(changed.id).not.toBe(reports[0]!.id); expect(hydrate).toHaveBeenCalledTimes(1);
+    expect(changed.after.sloc).toBe(2);
+    // A cached result must not conceal capture errors or mark a failed read reviewed.
+    capture.mockRejectedValueOnce(new Error("capture diagnostic"));
+    await expect(engine.review(roots[1]!, "working-tree")).rejects.toThrow("capture diagnostic");
+    expect(engine.stats.reportHits).toBe(6);
+    expect(await engine.review(roots[1]!, "working-tree")).toEqual(reports[1]);
+  });
+  it("keeps staged cache identity independent of live bytes and refreshes when the index moves", async () => {
+    const { storage } = await fixture(); wire(storage);
+    const root = await repo({ "a.ts": "export const a = 1;" }), engine = new ContourEngine();
+    const staged = await engine.review(root);
+    await put(root, "a.ts", "export const a = 2;\nexport const b = 3;");
+    expect(await engine.review(root)).toEqual(staged);
+    await git(root, ["add", "a.ts"]);
+    const changed = await engine.review(root);
+    expect(changed.id).not.toBe(staged.id); expect(changed.after.sloc).toBe(2);
+    expect(await engine.review(root)).toEqual(changed);
+  });
   it("atomically retains CLI checkpoint suppression, renews reads, and never suppresses policy enforcement", async () => {
     const { storage, path } = await fixture(); wire(storage);
     const root = await realpath(await repo({ "core/a.ts": "export const a=1;", "ui/b.ts": "export const b=2;" }));
