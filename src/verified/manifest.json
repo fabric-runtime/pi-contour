@@ -8,7 +8,7 @@
     "proofs/ledger.json": "5743935c26eccfde5525245515a3990a0b3d78c33acf03e3c9c5667236a40e47",
     "scripts/compile-proofs.ts": "1856042755a63addb857dc8b7d87b33a9174fb3a613d73c4978360b6564c31bf",
     "scripts/check-proofs.ts": "3cca9e430ab3c65ac08e41370e0a8f8d44517f9349c330a8c39ed7288c86184f",
-    "bun.lock": "a048d198d4908a77fd8b63883546b5844ade041c3656feff5d6d0626acf821f6"
+    "bun.lock": "2dacb6c567dd61ac21477e07ce0af56516faba1838df60aaea03c7161e7eab3e"
   },
   "outputs": {
     "src/verified/budget.js": "009a7cf9acfa6fa3ba6a40493c63873431e3384057e384cbfdd1bbd48c6b3047",

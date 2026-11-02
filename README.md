@@ -29,7 +29,7 @@ See [proof coverage and boundaries](docs/proofs.md).
 
 ## Install
 
-**Compatibility:** tested against Pi 1.3.0, including native nested-tool execution and codemode/Fabric declaration hiding. Pi APIs and TypeBox are wildcard peers supplied by the host; use Node 22.19+ with Pi. The standalone CLI still supports Node 20+.
+**Compatibility:** tested against Pi 1.5.0, including native nested-tool execution and codemode/Fabric declaration hiding. Pi APIs and TypeBox are wildcard peers supplied by the host; use Node 22.19+ with Pi. The standalone CLI still supports Node 20+.
 
 For your Pi setup, choose **one** source:
 

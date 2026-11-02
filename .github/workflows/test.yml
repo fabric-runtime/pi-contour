@@ -39,6 +39,8 @@ jobs:
       - name: Dead code
         run: bun run lint:dead
       - run: bun run build
+      - name: Pi host lifecycle and nested review
+        run: bunx vitest run tests/pi1-host.test.ts
       - run: bun run cover
       - run: git diff --exit-code -- dist media
       - run: bun run smoke
